@@ -127,8 +127,8 @@ public class NetworkService {
             outputStream.writeUTF(msg); 
             outputStream.flush();
             // 通知外界消息已发送
-            if (callback != null) {
-                callback.onMessageSent(name, msg);
+            if (callback != null&&msg.length()>10) {
+                callback.onMessageSent(name, msg.substring(10));
             }
         } catch (IOException e) {
             e.printStackTrace();

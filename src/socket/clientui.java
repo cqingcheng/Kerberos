@@ -74,7 +74,7 @@ public class clientui extends JFrame {
             public void onMessageSent(String name, String msg) {
                // 发出消息时，清空消息输入框，并将消息显示在消息区
             	textField5.setText("");
-               // textField6.append("我(" + name + "):\r\n" + msg + "\r\n");
+                textField6.append("我(" + name + "):\r\n" + msg + "\r\n");
             }
 
             @Override
@@ -487,17 +487,13 @@ public class clientui extends JFrame {
 						Desencrypt.encrypt();
 						
 						String Authc =Desencrypt.ciphertexts;
-						
-						
-						
 						data=31+Tickettgs+Authc;
 						System.out.println(data+"   data  "+data.length());
 						result=registersocket.register("192.168.43.180",55533,data,account);
 						System.out.println(result);
 						if(result.equals("0")) {
 							//textField1.setText("认证失败");
-							textField6.append("TGS认证失败");
-							
+							textField6.append("TGS认证失败");		
 						}
 						else {
 							//textField1.setText("从TGS服务器获得票据"+result);
@@ -505,7 +501,6 @@ public class clientui extends JFrame {
 							
 							
 							System.out.println(result.length()+"   result  "+result);
-							
 							DesDecrypt DesDecrypt=new DesDecrypt(result,kctgs);
 							DesDecrypt.decrypt();
 							String tgs_c =DesDecrypt.message;
@@ -555,7 +550,7 @@ public class clientui extends JFrame {
 								System.out.println("连接应用服务器");
 								networkService.connect("192.168.43.218", 55533);
 								
-								networkService.sendMessage(account,"");
+								networkService.sendMessage(account,"5"+account);
 								
 								JButton button2 = new JButton("发送");
 								button2.setBounds(440, 400, 80, 30);
