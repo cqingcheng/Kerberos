@@ -6,6 +6,7 @@ package socket;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Panel;
 import java.awt.Rectangle;
@@ -45,10 +46,12 @@ public class clientui extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField textField;
-	private JTextField textField_1;
+	//private JTextField textField_1;
 	private TextField textField5;
 	private JTextArea textField6;
 	private NetworkService networkService;
+	private JPasswordField textField_1;
+	private String Kcv;
 	private void initNetworkService() {
         networkService = new NetworkService();
         networkService.setCallback(new Callback() {
@@ -74,7 +77,17 @@ public class clientui extends JFrame {
             public void onMessageSent(String name, String msg) {
                // 发出消息时，清空消息输入框，并将消息显示在消息区
             	textField5.setText("");
-                textField6.append("我(" + name + "):\r\n" + msg + "\r\n");
+            	DesDecrypt DesDecrypt5=new DesDecrypt(msg,Kcv);
+				try {
+					DesDecrypt5.decrypt();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				String v_c =DesDecrypt5.message;
+            	
+            	
+                textField6.append("我(" + name + "):    密文：  " + v_c + "\r"+"明文："+msg+"\n");
             }
 
             @Override
@@ -83,7 +96,19 @@ public class clientui extends JFrame {
             	System.out.println("收到聊天信息");
             	String account=msg.substring(1,10);
             	msg=msg.substring(10);
-            	textField6.append(account+":     "+msg + "\r\n");
+            	
+            	DesDecrypt DesDecrypt6=new DesDecrypt(msg,Kcv);
+				try {
+					DesDecrypt6.decrypt();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				}
+				String v_c =DesDecrypt6.message;
+            	
+            	
+            	textField6.append(account+":    密文 "+msg + "\r明文：  "+v_c+"\n");
             }
         });
     }
@@ -269,7 +294,7 @@ public class clientui extends JFrame {
 				JLabel lblNewLabel_1 = new JLabel("密码");
 				lblNewLabel_1.setBounds(91, 113, 58, 15);
 				contentPane.add(lblNewLabel_1);
-				
+
 				TextField textField1 = new TextField();
 				textField1 .setBounds(129, 55, 203, 18);
 				textField1 .addFocusListener(new TextFieldHintListener(textField1, "请输入长度为9位的账号"));
@@ -408,8 +433,10 @@ public class clientui extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				String account=textField.getText().toString();
-				String password=textField_1.getText().toString();
-				JFrame frame2 = new JFrame("新窗口");
+			//	String password=textField_1.getText().toString();
+				String password=new String(textField_1.getPassword());
+				System.out.println(password);
+				JFrame frame2 = new JFrame("群聊");
 				frame2.setLocation(100,50);//设置在屏幕的位置
 				frame2.setSize(600,500);//				窗体大小
 				
@@ -418,14 +445,21 @@ public class clientui extends JFrame {
 				textField6 = new JTextArea();
 				textField6 .setBounds(40, 40, 500, 250);
 				textField6.setLineWrap(true);
-				frame2.getContentPane().add(textField6);
 				
+				
+				
+				
+				
+		        
+		        
+		        
 				textField5 = new TextField();
 				textField5 .setBounds(40, 310, 500, 80);
 				frame2.getContentPane().add(textField5);
 				
 				Long startTs = System.currentTimeMillis();
 				String data=2+account+1+startTs+password;
+				textField6.append("\n向AS服务器发送请求"+data+"\n");
 				
 				try {
 					result=registersocket.register("192.168.43.82",55533,data,account);
@@ -487,6 +521,7 @@ public class clientui extends JFrame {
 						Desencrypt.encrypt();
 						
 						String Authc =Desencrypt.ciphertexts;
+						textField6.append("\n向TGS服务器发送请求"+Authc+"\n");
 						data=31+Tickettgs+Authc;
 						System.out.println(data+"   data  "+data.length());
 						result=registersocket.register("192.168.43.180",55533,data,account);
@@ -497,14 +532,14 @@ public class clientui extends JFrame {
 						}
 						else {
 							//textField1.setText("从TGS服务器获得票据"+result);
-							textField6.append("从TGS服务器获得票据"+result);
+							textField6.append("\n从TGS服务器获得票据"+result+"\n");
 							
 							
 							System.out.println(result.length()+"   result  "+result);
 							DesDecrypt DesDecrypt=new DesDecrypt(result,kctgs);
 							DesDecrypt.decrypt();
 							String tgs_c =DesDecrypt.message;
-							String Kcv=tgs_c.substring(0,64);
+							Kcv=tgs_c.substring(0,64);
 							String idv=tgs_c.substring(64,65);
 							String TS4=tgs_c.substring(65,78);
 							String Ticketv=tgs_c.substring(78);
@@ -513,6 +548,13 @@ public class clientui extends JFrame {
 							System.out.println(idv.length()+"   idv  "+idv);
 							System.out.println(TS4.length()+"   TS4  "+TS4);
 							System.out.println(Ticketv.length()+"   Ticketv  "+Ticketv);
+							
+							
+							
+							
+							
+							
+							
 							
 							Long startTs4 = System.currentTimeMillis();
 							ts5=startTs4+"";
@@ -541,7 +583,7 @@ public class clientui extends JFrame {
 								DesDecrypt1.decrypt();
 								String v_c =DesDecrypt1.message;
 								System.out.println("v_c   "+v_c);
-								textField6.setText("");
+							//	textField6.setText("\n");
 								
 								initNetworkService();
 								
@@ -549,6 +591,13 @@ public class clientui extends JFrame {
 								
 								System.out.println("连接应用服务器");
 								networkService.connect("192.168.43.218", 55533);
+								
+								
+								
+								
+								
+								
+								
 								
 								networkService.sendMessage(account,"5"+account);
 								
@@ -560,7 +609,20 @@ public class clientui extends JFrame {
 									//单击按钮执行的方法
 									public void actionPerformed(ActionEvent e) {
 										String data=textField5.getText();
-										data=5+account+data;
+
+
+										DesEncrypt Desencrypt1=new DesEncrypt(data,Kcv);
+										try {
+											Desencrypt1.encrypt();
+										} catch (IOException e1) {
+											// TODO Auto-generated catch block
+											e1.printStackTrace();
+										}
+										
+										String Authc1 =Desencrypt1.ciphertexts;
+										
+										
+										data=5+account+Authc1;
 										networkService.sendMessage(account,data);
 									}
 									
@@ -582,6 +644,7 @@ public class clientui extends JFrame {
 					public void actionPerformed(ActionEvent e) {
 						//System.exit(0);
 						networkService.disconnect();
+						System.exit(0);
 					}
 					
 				});
@@ -590,6 +653,16 @@ public class clientui extends JFrame {
 				
 				Panel pan = new Panel();
 				pan.setSize(100, 100);
+				
+				 JScrollPane text2=new JScrollPane(textField6){
+					   @Override
+					   public Dimension getPreferredSize() {
+					     return new Dimension(500, 250);
+					   }
+					 }; 
+					
+				 pan.add(text2);
+				
 				frame2.getContentPane().add(pan);
 				frame2.setVisible(true);
 				
@@ -614,12 +687,20 @@ public class clientui extends JFrame {
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
-		//JPasswordField jPasswordField = new JPasswordField();
-		//String pwd=jPasswordField.getPassword().toString().trim();
-		textField_1 = new JTextField();
+		textField_1=new JPasswordField();
 		textField_1.setBounds(132, 110, 200, 18);
 		contentPane.add(textField_1);
 		textField_1.setColumns(10);
+		
+		/*
+		textField_1 = new JTextField();
+		textField_1.setBounds(132, 110, 200, 18);
+		contentPane.add(textField_1);
+		textField_1.setColumns(10);*/
+		
+		
+		
+		
 		
 	}
 }
